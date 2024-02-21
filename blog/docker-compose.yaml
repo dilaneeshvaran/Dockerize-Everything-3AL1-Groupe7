@@ -1,2 +1,30 @@
 # Définir cette configuration Compose afin de lancer l'application
 # The Computer Club's Blog en production.
+version: '3'
+services:
+  app:
+    build: .
+    image: blog:1.0.0
+    environment:
+      - DATABASE_URL=postgres://test:test@db:5432/blog
+      - ROCKET_ADDRESS=0.0.0.0
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      - db
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U test -d blog'" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    command: bash -c "sleep 4 diesel migration run && ./blog"
+  db:
+    image: postgres:16-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: blog
+      POSTGRES_PASSWORD: test
+      POSTGRES_USER: test
