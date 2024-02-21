@@ -18,7 +18,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
-    command: bash -c "sleep 4 diesel migration run && ./blog"
+    command: bash -c "sleep 5 diesel migration run && ./blog"
   db:
     image: postgres:16-alpine
     restart: always
