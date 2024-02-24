@@ -2,23 +2,38 @@
 # utilisation de php-fpm
 FROM php:8.3-fpm
 
-# définir le répertoire de travail
-WORKDIR /var/www/html
-
 # installer l'extension intl
-RUN docker-php-ext-install intl
+RUN apt-get update && apt-get install -y \
+        libicu-dev \
+        libzip-dev \
+        zip \
+        git\
+    && docker-php-ext-install intl zip \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 
 # installer le composer dans le container
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
 
-# copier les fichiers sources dans le répertoire de travail 
+# définir le répertoire de travail
+WORKDIR /var/www/html
+# copier les fichiers sources dans le répertoire de travail
 COPY . .
 
+
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
 # installer les dépendances
 RUN composer install --no-dev --optimize-autoloader
 
+RUN composer require symfony/asset-mapper symfony/asset symfony/twig-pack
 # compiler le JS et le CSS (voire README)
-RUN php bin/console asset-map:compil
+RUN php bin/console asset-map:compile
 
 # nettoyer le cache (voire le README)
-RUN php bin/console cache:clear --env=prod
+
+COPY --chown=www-data:www-data . .
+
+USER www-data
+CMD ["php-fpm"]
