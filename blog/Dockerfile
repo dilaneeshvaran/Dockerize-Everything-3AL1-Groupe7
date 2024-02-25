@@ -10,5 +10,3 @@ RUN cargo install diesel_cli --no-default-features --features postgres
 RUN apt update && apt install curl -y \
         && rm -rf /var/lib/apt/lists/* \
 
-CMD ["diesel","migration","run"]
-CMD ["./blog"]
